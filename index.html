@@ -292,7 +292,7 @@ table.pt th, table.pt td { text-align: left; padding: 3px 6px; border-bottom: 1p
 button.scf, button.scc { background: none; border: 0; padding: 0; color: inherit; font-family: inherit; text-align: center; cursor: zoom-in; }
 button.scc { text-align: left; }
 button.scf:focus-visible, button.scc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.sclb .lbimg { max-height: 70vh; width: auto; max-width: 100%; margin: 0 auto; display: block; }
+.sclb .lbimg { max-height: 44vh; width: auto; max-width: 100%; margin: 0 auto; display: block; }
 
 .czc { container-type: inline-size; width: 100%; position: relative; overflow: hidden; background: #0b0f1c; color: #e9edf7; text-align: left; box-sizing: border-box; }
 .cztech { aspect-ratio: 520 / 338; }
@@ -683,7 +683,7 @@ function applyDraft(res, seats, tiles) {
 </script>
 <script>
 /* ---------- state ---------- */
-const APP_VERSION = '1.8';
+const APP_VERSION = '1.9';
 const KEY = 'ti4-command-table-v1';
 const S = { tab: 'race', fid: 'hacan', plans: {}, mapStr: SAMPLE_MAP, example: true, seats: [], me: null, selPos: null,
   zoom: 1.0, hl: true, techSel: null, draftText: '', shareText: '', mapErr: '', viewFid: null, lang: 'en', tf: 'all', zoomTech: null };
@@ -737,8 +737,7 @@ function ensurePlan(fid) {
 function myPlan() { return ensurePlan(S.fid); }
 
 /* ---------- images ---------- */
-/* Czech mode: the original card scans are English, so redraw the cards from the translated text */
-const SC_COL = ['#e5262b', '#f39a1e', '#f2e300', '#2eb84a', '#14b59a', '#1590d8', '#2a4fc2', '#8a3fc0'];
+/* Czech text of the strategy cards, shown in the enlarged view (the scans are English) */
 const SC_TXT = [
   [['Získej 3 velitelské žetony.', 'Utrať libovolné množství vlivu a získej 1 velitelský žeton za každé 3 utracené vlivu.'], ['Utrať libovolné množství vlivu a získej 1 velitelský žeton za každé 3 utracené vlivu.']],
   [['Vyber 1 systém jiný než Mecatol Rex, který obsahuje planetu, kterou ovládáš; každý jiný hráč do něj umístí velitelský žeton ze své zásoby. Poté obnov každou vyčerpanou planetu, kterou v tom systému ovládáš.'], ['Utrať 1 žeton ze své strategické zásoby a obnov až 2 vyčerpané planety.']],
@@ -749,21 +748,7 @@ const SC_TXT = [
   [['Prozkoumej 1 technologii.', 'Utrať 6 zdrojů a prozkoumej 1 další technologii.'], ['Utrať 1 žeton ze své strategické zásoby a 4 zdroje a prozkoumej 1 technologii.']],
   [['Okamžitě splň 1 veřejný úkol, pokud splňuješ jeho podmínky.', 'Získej 1 vítězný bod, pokud ovládáš Mecatol Rex; jinak lízni 1 tajný úkol.'], ['Utrať 1 žeton ze své strategické zásoby a lízni 1 tajný úkol.']]
 ];
-function czScFace(n, cls) {
-  const t = SC_TXT[n - 1], nm = Object.keys(SCNUM).find(c => SCNUM[c] === n), col = SC_COL[n - 1];
-  const sec = (h, a) => '<div class="czs"><b>' + LE(h) + ':</b><ul>' + a.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>';
-  return '<div class="czc czsc ' + (cls || '') + '" style="--c:' + col + '" role="img" aria-label="' + esc(nm) + '"><div class="czin"><div class="czh"><span>' + esc(nm) + '</span><i>' + n + '</i></div>' + sec('PRIMARY ABILITY', t[0]) + sec('SECONDARY ABILITY', t[1]) + '<div class="czstripe"></div></div></div>';
-}
-function czTechFace(id, cls) {
-  const t = T[id], k = techColor(id), c = k ? 'var(--' + COLCLS[k] + ')' : '#cfd6e4';
-  const fac = t.faction ? (F[t.faction] ? F[t.faction].name.toUpperCase() : '') : '';
-  return '<div class="czc cztech ' + (cls || '') + '" style="--c:' + c + '" role="img" aria-label="' + esc(t.name) + '"><div class="czin"><div class="czt">' + esc(t.name) + '</div>' + (fac ? '<div class="czf">' + esc(fac) + '</div>' : '') + '<div class="czb">' + esc(L(t.text)) + '</div><div class="czp">' + (t.req || '').split('').map(ch => '<i class="dot ' + COLCLS[ch] + '"></i>').join('') + '</div></div></div>';
-}
-function img(kind, id, cls, alt) {
-  if (S.lang === 'cs') { if (kind === 'sc') return czScFace(+id, cls); if (kind === 'tech' && T[id]) return czTechFace(id, cls); }
-  return imgRaw(kind, id, cls, alt);
-}
-function imgRaw(kind, id, cls, alt) { const u = IMG[kind] && IMG[kind][id]; return u ? '<img class="' + (cls || '') + '" src="' + u + '" alt="' + esc(alt || '') + '" loading="lazy" decoding="async">' : ''; }
+function img(kind, id, cls, alt) { const u = IMG[kind] && IMG[kind][id]; return u ? '<img class="' + (cls || '') + '" src="' + u + '" alt="' + esc(alt || '') + '" loading="lazy" decoding="async">' : ''; }
 const SCNUM = { Leadership: 1, Diplomacy: 2, Politics: 3, Construction: 4, Trade: 5, Warfare: 6, Technology: 7, Imperial: 8 };
 
 /* ---------- small renderers ---------- */
@@ -863,6 +848,10 @@ function guideHtml() {
   return h;
 }
 const SC_DESC = ['Gain command tokens, spending influence for extra ones.', 'Lock a rival out of a system and ready planets.', 'Take the speaker token, draw action cards, peek at agendas.', 'Place PDS and space docks.', 'Gain trade goods and refill commodities.', 'Reposition a command token and build at home.', 'Research technologies.', 'Score objectives and gain victory points from Mecatol Rex.'];
+function scCzText(n) {
+  const t = SC_TXT[n - 1], sec = (h, a) => '<p style="margin-top:6px"><b>' + LE(h) + ':</b></p><ul style="margin:2px 0 0 18px;padding:0">' + a.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+  return sec('PRIMARY ABILITY', t[0]) + sec('SECONDARY ABILITY', t[1]);
+}
 function strategyRef() {
   const rows = [['Leadership', 'Gain command tokens, spending influence for extra ones.'], ['Diplomacy', 'Lock a rival out of a system and ready planets.'],
     ['Politics', 'Take the speaker token, draw action cards, peek at agendas.'], ['Construction', 'Place PDS and space docks.'],
@@ -991,7 +980,7 @@ function zoomHtml(id) {
   if (/^sc\d$/.test(id)) {
     const n = +id.slice(2), nm = Object.keys(SCNUM).find(c => SCNUM[c] === n), desc = SC_DESC[n - 1];
     return '<div class="lb" id="lb" data-act="lbclose"><div class="lbin sclb" role="dialog" aria-modal="true" aria-label="' + esc(nm) + '">' + img('sc', n, 'lbimg', nm) +
-      '<div class="lbtxt"><h4>' + n + '. ' + esc(nm) + '</h4><p>' + LE(desc) + '</p><div class="row" style="margin-top:8px">' + (n > 1 ? '<button class="btn" data-act="tzoom" data-id="sc' + (n - 1) + '">←</button>' : '') + (n < 8 ? '<button class="btn" data-act="tzoom" data-id="sc' + (n + 1) + '">→</button>' : '') + '<button class="btn pri" data-act="lbclose">' + LE('Close') + '</button></div></div></div></div>';
+      '<div class="lbtxt"><h4>' + n + '. ' + esc(nm) + '</h4>' + (S.lang === 'cs' ? scCzText(n) : '<p>' + LE(desc) + '</p>') + '<div class="row" style="margin-top:8px">' + (n > 1 ? '<button class="btn" data-act="tzoom" data-id="sc' + (n - 1) + '">←</button>' : '') + (n < 8 ? '<button class="btn" data-act="tzoom" data-id="sc' + (n + 1) + '">→</button>' : '') + '<button class="btn pri" data-act="lbclose">' + LE('Close') + '</button></div></div></div></div>';
   }
   const t = T[id]; const k = techColor(id); const P = myPlan(); const inPlan = P.plan.includes(id), owned = P.start.includes(id);
   return '<div class="lb" id="lb" data-act="lbclose"><div class="lbin" role="dialog" aria-modal="true" aria-label="' + esc(t.name) + '">' + img('tech', id, 'lbimg', t.name) +
