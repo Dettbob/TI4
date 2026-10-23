@@ -683,7 +683,7 @@ function applyDraft(res, seats, tiles) {
 </script>
 <script>
 /* ---------- state ---------- */
-const APP_VERSION = '1.9';
+const APP_VERSION = '1.10';
 const KEY = 'ti4-command-table-v1';
 const S = { tab: 'race', fid: 'hacan', plans: {}, mapStr: SAMPLE_MAP, example: true, seats: [], me: null, selPos: null,
   zoom: 1.0, hl: true, techSel: null, draftText: '', shareText: '', mapErr: '', viewFid: null, lang: 'en', tf: 'all', zoomTech: null };
@@ -1146,13 +1146,16 @@ function renderMap() {
 }
 
 /* ---------- render + events ---------- */
+function showLightbox() { const h = document.getElementById('lbhost'); if (h) h.innerHTML = S.zoomTech && (T[S.zoomTech] || /^sc\d$/.test(S.zoomTech)) ? zoomHtml(S.zoomTech) : ''; }
 function render() {
+  const keepY = window.scrollY;
   renderStatic(); renderBadge();
   const v = document.getElementById('view');
   const old = document.getElementById('mapbox'); const sx = old ? old.scrollLeft : 0, sy = old ? old.scrollTop : 0;
   v.innerHTML = S.tab === 'race' ? renderRace() : S.tab === 'tech' ? renderTech() : renderMap();
   const nb = document.getElementById('mapbox'); if (nb && (sx || sy)) { nb.scrollLeft = sx; nb.scrollTop = sy; }
-  const lbHost = document.getElementById('lbhost'); lbHost.innerHTML = S.zoomTech && (T[S.zoomTech] || /^sc\d$/.test(S.zoomTech)) ? zoomHtml(S.zoomTech) : '';
+  showLightbox();
+  window.scrollTo(0, keepY);
   save();
 }
 function setTab(t) { S.tab = t; render(); window.scrollTo(0, 0); }
@@ -1175,8 +1178,8 @@ const ACT = {
   clearplan: () => { const undo = snapshotPlan(); myPlan().plan = []; render(); toast(L('Plan cleared.'), undo); },
   fixorder: () => { const P = myPlan(); const undo = snapshotPlan(); P.plan = autoOrder(S.fid, P); render(); toast(L('Reordered so each tech comes after its prerequisites where possible.'), undo); },
   tfilter: d => { S.tf = d.k; render(); },
-  tzoom: d => { S.zoomTech = d.id; render(); },
-  lbclose: (d, el, e) => { if (e && e.target && e.target.closest && e.target.closest('.lbin') && !(el.classList && el.classList.contains('btn'))) return; S.zoomTech = null; render(); },
+  tzoom: d => { S.zoomTech = d.id; showLightbox(); save(); },
+  lbclose: (d, el, e) => { if (e && e.target && e.target.closest && e.target.closest('.lbin') && !(el.classList && el.classList.contains('btn'))) return; S.zoomTech = null; showLightbox(); },
   ttoggle: d => { const P = myPlan(); const i = P.plan.indexOf(d.id); if (i >= 0) P.plan.splice(i, 1); else P.plan.push(d.id); if (d.close) S.zoomTech = null; const y = window.scrollY; render(); window.scrollTo(0, y); },
   mapskip: d => { const P = myPlan(); const i = P.plan.indexOf(d.id); if (i >= 0) P.plan.splice(i, 1); else P.plan.push(d.id); render(); },
   addskip: d => { const P = myPlan(); P.plan.push('sk:' + d.k + ':g' + Date.now().toString(36)); render(); },
